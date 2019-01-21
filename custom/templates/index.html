@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div>
+    <h2>Buy for ${{ "{:,.2f}".format(product.amount_in_dollars) }}</h2>
+    <button type="button" class="btn btn-primary" id="custom-button">Pay with Card</button>
+  </div>
+  <div id="status">
+    <br>
+    <div class="alert alert-primary" id="alert" role="alert"></div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://checkout.stripe.com/checkout.js"></script>
+  <script>
+    var handler = StripeCheckout.configure({
+      key: "{{ key }}",
+      image: "https://stripe.com/img/documentation/checkout/marketplace.png",
+      locale: "auto",
+      token: function(token) {
+        fetch("/charge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", },
+          body: JSON.stringify({
+            token: token.id,
+            product: "{{ product.id }}"
+          }),
+        })
+        .then(function(response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Something went wrong.');
+          }
+        })
+        .then(function(jsonResponse) {
+          // update the alert message
+          document.getElementById("alert").innerText = "Thanks for purchasing!"
+          // show the bootstrap alert
+          document.getElementById("status").style.display = "inline";
+        })
+        .catch(function(err) {
+          // update the alert message
+          document.getElementById("alert").innerText = "Something went wrong."
+          // show the bootstrap alert
+          document.getElementById("status").style.display = "inline";
+        });
+      }
+    });
+    document.getElementById("custom-button").addEventListener("click", function(e) {
+      // hide the bootstrap alert
+      document.getElementById("status").style.display = "none";
+      handler.open({
+        name: "{{ product.name }}",
+        description: "{{ product.description }}",
+        amount: parseInt("{{ product.amount }}")
+      });
+      e.preventDefault();
+    });
+
+    window.addEventListener("popstate", function() {
+      handler.close();
+    });
+  </script>
+{% endblock %}
