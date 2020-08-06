@@ -1,2 +1,3 @@
-__pycache__
 env
+__pycache__
+*.sqlite3
