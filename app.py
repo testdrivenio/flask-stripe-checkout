@@ -1,13 +1,14 @@
 import os
 
 import stripe
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
 stripe_keys = {
     "secret_key": os.environ["STRIPE_SECRET_KEY"],
     "publishable_key": os.environ["STRIPE_PUBLISHABLE_KEY"],
+    "endpoint_secret": os.environ["STRIPE_ENDPOINT_SECRET"],
 }
 
 stripe.api_key = stripe_keys["secret_key"]
@@ -71,6 +72,31 @@ def success():
 @app.route("/cancelled")
 def cancelled():
     return render_template("cancelled.html")
+
+
+@app.route("/webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get("Stripe-Signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, stripe_keys["endpoint_secret"]
+        )
+
+    except ValueError as e:
+        # Invalid payload
+        return "Invalid payload", 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return "Invalid signature", 400
+
+    # Handle the checkout.session.completed event
+    if event["type"] == "checkout.session.completed":
+        print("Payment was successful.")
+        # TODO: run some custom code here
+
+    return "Success", 200
 
 
 if __name__ == "__main__":
