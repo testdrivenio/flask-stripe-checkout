@@ -26,6 +26,12 @@ Check out the [post](https://testdriven.io/blog/flask-stripe-tutorial/).
     (venv)$ export STRIPE_PUBLISHABLE_KEY=<YOUR_STRIPE_PUBLISHABLE_KEY>
     (venv)$ export STRIPE_SECRET_KEY=<YOUR_STRIPE_SECRET_KEY>
     ```
+   
+1. In case you are planning to confirm payments using webhooks you also need to add endpoint secret to the settings.py file:
+
+```sh
+(env)$ export STRIPE_ENDPOINT_SECRET=<YOUR_ENDPOINT_SECRET_KEY>
+```
 
 1. Run the server:
 
