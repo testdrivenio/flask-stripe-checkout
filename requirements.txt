@@ -1,2 +1,2 @@
-Flask==2.0.2
+Flask==2.3.2
 stripe==2.64.0
